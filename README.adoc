@@ -5,7 +5,7 @@ After having used [D3.js](https://d3js.org/) off and on for literally years with
 
 So I determined to work my way methodically through some beginner-to-expert tutorial, filling in gaps as I went, taking time to ensure I understood _all_ the concepts thoroughly. I further determined to modify and extend the examples as necessary to mimic the demands I might encounter in a real project, and to really ensure that I had a firm enough grasp to be _able_ to do so — and, as it turns out, to discover even more challenges and techniques in so doing.
 
-In searching, I discovered Philipp K. Janert's excellent [D3 for the Impatient](https://learning.oreilly.com/library/view/d3-for-the/9781492046783/), which I can't recommend highly enough. The explanations are incredibly clear and detailed, and — as far as I can tell — the book in its entirety covers every important corner of D3's huge range of functionality.
+In searching, I discovered Philipp K. Janert's excellent https://learning.oreilly.com/library/view/d3-for-the/9781492046783/[D3 for the Impatient], which I can't recommend highly enough. The explanations are incredibly clear and detailed, and — as far as I can tell — the book in its entirety covers every important corner of D3's huge range of functionality.
 
 So this project is the (continuing) result of that exercise, with my goals being:
 
