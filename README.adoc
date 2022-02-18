@@ -1,0 +1,34 @@
+= “D3 for the Impatient” Exercises
+================================
+
+After having used [D3.js](https://d3js.org/) off and on for literally years with only a very fuzzy understanding of how it works, I'd gotten tired of getting stopped in my tracks and having to spend unnecessary (and unnecessarily frustrating) hours getting some close-enough example from [Observable HQ](http://observablehq.com/) to meet my immediate need, through a process that was mostly trial and error, to be completely honest. And of course, the end result was generally something that was a near — or not so near — compromise with my original expectation. ObservableHQ is an amazing tool (as is D3, to state the obvious) but to me, at least, provided an additional hurdle; while its 'notebook' style is fantastic for exploring ideas in D3 itself, it doesn't provide a lot of clues on how to integrate those examples into a living, breathing app.
+
+So I determined to work my way methodically through some beginner-to-expert tutorial, filling in gaps as I went, taking time to ensure I understood _all_ the concepts thoroughly. I further determined to modify and extend the examples as necessary to mimic the demands I might encounter in a real project, and to really ensure that I had a firm enough grasp to be _able_ to do so — and, as it turns out, to discover even more challenges and techniques in so doing.
+
+In searching, I discovered Philipp K. Janert's excellent [D3 for the Impatient](https://learning.oreilly.com/library/view/d3-for-the/9781492046783/), which I can't recommend highly enough. The explanations are incredibly clear and detailed, and — as far as I can tell — the book in its entirety covers every important corner of D3's huge range of functionality.
+
+So this project is the (continuing) result of that exercise, with my goals being:
+
+*   work through every example in the book, only moving on when I feel I've mastered it
+*   adapt every example to a front-end SPA framework, adopting as many of the idioms/strengths of that framework as possible. (https://vuejs.org/[Vue.js 3.0], specifically, since that's my current go-to, but I think the principles would be easy enough to migrate to React, Angular, etc.)
+*   think of at least one modification and/or extension I might realistically need to apply to the example in a real project, and complete those, incorporating as many of these goals as possible:
+**   live updating of the display in response to modification of the underlying data, including…
+***   adding data points
+***  removing data points
+*** changing the value of existing data points
+*   adding parameters to alter the display of the data, either by altering the default state of the containing component, passing params from the containing component or, ideally, exposing these as user-accessible controls in the UI
+*   Adding some kind of animation, but only if that serves to enhance the user's understanding of the data/its evolution
+*   mimicking the way the display might need to respond to data incoming from external sources, if only, in this case, via a user button-press or a Javascript time/interval function.
+
+So here they are… I hope they can be useful to you, too, somehow.
+
+== Running the Examples
+
+After cloning/downloading this repo:
+
+* install the dependencies by navigating to the root directory (where
+`package.json` is, and running either `yarn install` or `npm install`
+— I've been using https://yarnpkg.com/[Yarn] to manage the project, but
+https://docs.npmjs.com/getting-started/configuring-your-local-environment[npm] should work just fine, too)
+- from the same directory, run either `yarn serve` or `npm run serve'
+- in a browser, navigate to the url displayed in the terminal

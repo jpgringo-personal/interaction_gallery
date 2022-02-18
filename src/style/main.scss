@@ -1,0 +1,86 @@
+body {
+  background-color: #fff;
+}
+
+p {
+  margin:0 0 0.5em 0;
+}
+
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #2c3e50;
+}
+
+#nav {
+  padding: 30px;
+
+  a {
+    display:inline-block;
+    font-weight: bold;
+    color: #2c3e50;
+    text-decoration: none;
+
+    &::after {
+      content: "|";
+      padding: 0 0.5em;
+    }
+
+    &:last-child::after {
+      content: none;
+      padding:0;
+    }
+
+    &:hover {
+     text-decoration: underline;
+    }
+
+    &.router-link-exact-active {
+      color: #42b983;
+    }
+  }
+}
+
+.d3-sandbox {
+  border-bottom: 2px solid midnightblue;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  & > svg {
+    border: solid 1px silver;
+  }
+
+  &.lissajous {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    & > svg, & > div {
+      box-sizing: border-box;
+      flex: 0 0 50%;
+      margin:0 0;
+    }
+
+    .controls {
+      box-sizing: border-box;
+      padding: 0.5rem;
+      padding-top: 0;
+      flex-grow: 1;
+    }
+  }
+}
+.ch03 {
+  ul {
+    order: 2;
+    display:block;
+    position: relative;
+    //flex-direction: column;
+    //flex-wrap: wrap;
+
+    li {
+      position: absolute;
+      display:list-item;
+      white-space: nowrap;
+    }
+  }
+}
