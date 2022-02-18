@@ -15,7 +15,8 @@ export default {
     max: {type: Number, default: 1.0},
     currentValue: {type: Number, default: 0.0},
     continuousOutput: {type: Boolean, default: false},
-    scalePower: {type: Number, default: 1}
+    scalePower: {type: Number, default: 1},
+    precision: {type: Number, default: 2}
   },
   emits: ['valueUpdated'],
   data: function () {
@@ -32,25 +33,31 @@ export default {
     }
   },
   mounted() {
-    console.log(`width:`, this.$refs.stage.clientWidth)
-    this.setDimensions();
-    window.onresize = this.setDimensions;
     this.svg = d3.select(this.$refs.stage);
+    this.setDimensions();
+    // window.onresize = this.setDimensions;
+    window.addEventListener('resize', this.setDimensions)
     this.valueDisplay = d3.select(this.$refs.value);
     this.updateValueDisplay(this.currentValue);
     this.drawSlider();
+  },
+  unmounted() {
+    window.removeEventListener('resize', this.setDimensions);
   },
   methods: {
     setDimensions() {
       this.width = this.$refs.stage.clientWidth;
       this.height = this.$refs.stage.clientHeight;
       this.scX = d3.scalePow().exponent(this.scalePower).domain([this.min, this.max]).range([this.inset, this.width - this.inset]);
+      this.drawSlider()
     },
     drawSlider() {
-      this.bar = this.svg
-          .append('g')
-          .attr('id', 'chrome')
-          .append('line');
+      if(typeof this.bar === 'undefined') {
+        this.bar = this.svg
+            .append('g')
+            .attr('id', 'chrome')
+            .append('line');
+      }
       this.bar.attr('x1', this.inset)
           .attr('x2', this.width - this.inset * 2)
           .attr('y1', this.height / 2)
@@ -59,9 +66,11 @@ export default {
           .attr('stroke-width', 1);
 
       const startValue = Math.min(Math.max(this.currentValue, this.min), this.max);
-      this.thumb = this.svg.append('g')
-          .attr('id', 'thumb')
-          .append('circle');
+      if(typeof this.thumb === 'undefined') {
+        this.thumb = this.svg.append('g')
+            .attr('id', 'thumb')
+            .append('circle');
+      }
       this.thumb.attr('fill', 'dodgerblue')
           .attr('r', this.thumbRadius)
           .attr('cx', this.scX(startValue)/*this.inset*/)
@@ -76,12 +85,10 @@ export default {
       sel.call(
           d3.drag()
               .on('start', function (evt) {
-                console.log(`starting drag...`);
                 widget = d3.select(this);
               })
               .on('drag', function (evt) {
                 const pt = d3.pointer(evt, svg);
-                // console.log(`dragging...`, Math.max(pt[0], 0));
 
                 const newPos = Math.min(Math.max(
                     pt[0],
@@ -93,7 +100,6 @@ export default {
               })
               .on('end', function () {
                 const endPos = widget.attr('cx') - vm.scX.range()[0];
-                console.log(`finished dragging. endPos=${endPos}`);
                 widget = undefined;
                 vm.updateValue(vm.calculateScaledValue(endPos))
               })
@@ -109,7 +115,7 @@ export default {
       this.updateValueDisplay(newValue);
     },
     updateValueDisplay(newValue) {
-      this.valueDisplay.text(newValue.toFixed(1));
+      this.valueDisplay.text(newValue.toFixed(this.precision));
     }
   }
 }
@@ -124,13 +130,17 @@ export default {
 
   svg {
     //border: solid 1px magenta;
+    order:2;
   }
 
   .value {
     display: block;
     flex: 0 0 1.5rem;
-    text-align: right;
+    text-align: left;
     font-size: 0.65rem;
+    min-width: 2rem;
+    max-width: 2rem;
+    order:1;
   }
 }
 

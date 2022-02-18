@@ -2,8 +2,13 @@ body {
   background-color: #fff;
 }
 
+div, svg, p {
+  position: relative;
+  box-sizing: border-box;
+}
+
 p {
-  margin:0 0 0.5em 0;
+  margin: 0 0 0.5em 0;
 }
 
 aside {
@@ -11,6 +16,15 @@ aside {
   padding: 0.5em 1em;
   border: solid 3px wheat;
   font-style: italic;
+}
+
+label {
+  font-weight: bold;
+  margin: 0 0.5em 0 0;
+
+  &::after {
+    content: ":"
+  }
 }
 
 #app {
@@ -24,7 +38,7 @@ aside {
   padding: 30px;
 
   a {
-    display:inline-block;
+    display: inline-block;
     font-weight: bold;
     color: #2c3e50;
     text-decoration: none;
@@ -36,11 +50,11 @@ aside {
 
     &:last-child::after {
       content: none;
-      padding:0;
+      padding: 0;
     }
 
     &:hover {
-     text-decoration: underline;
+      text-decoration: underline;
     }
 
     &.router-link-exact-active {
@@ -50,12 +64,38 @@ aside {
 }
 
 .d3-sandbox {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   border-bottom: 2px solid midnightblue;
   padding-bottom: 1rem;
   margin-bottom: 1rem;
+
+  & > svg, & > .controls {
+    flex: 0 0 50%;
+  }
   & > svg {
     border: solid 1px silver;
   }
+
+  & > .controls {
+    flex-grow: 1;
+    padding: 0 1rem 1rem 1rem;
+
+    fieldset {
+      border: solid 1px silver;
+      box-shadow: .25rem .25rem .25rem rgba(0, 0, 0, 0.2);
+
+      label {
+        font-size: 0.85rem;
+        &::after {
+          content: none;
+          margin:0;
+        }
+      }
+    }
+  }
+
 
   &.lissajous {
     display: flex;
@@ -65,7 +105,7 @@ aside {
     & > svg, & > div {
       box-sizing: border-box;
       flex: 0 0 50%;
-      margin:0 0;
+      margin: 0 0;
     }
 
     .controls {
@@ -76,17 +116,18 @@ aside {
     }
   }
 }
+
 .ch03 {
   ul {
     order: 2;
-    display:block;
+    display: block;
     position: relative;
     //flex-direction: column;
     //flex-wrap: wrap;
 
     li {
       position: absolute;
-      display:list-item;
+      display: list-item;
       white-space: nowrap;
     }
   }

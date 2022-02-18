@@ -1,24 +1,45 @@
 <template>
   <div class="component d3-sandbox">
     <svg ref="stage" :width="width" :height="height"></svg>
-    <p>
-      <button @click="addNewData(false)">Add Random Points</button>
-      <button @click="addNewData(true)">Add Drunkard's Walk Points</button>
-      <button @click="removeData">Remove Random Points</button>
-    </p>
-    <p>
-      <button @click="autoDrunkardsWalk" :disabled="timerRunning">Start Drunkard's Walk</button>
-      <button @click="autoDrunkardsWalk(false)" :disabled="!timerRunning">Stop Drunkard's Walk
-      </button>
-    </p>
+    <div class="controls">
+      <p>
+        <button @click="addNewData(false)">Add Random Points</button>
+        <button @click="addNewData(true)">Add Drunkard's Walk Points</button>
+        <button @click="removeData">Remove Random Points</button>
+      </p>
+      <p>
+        <button @click="autoDrunkardsWalk" :disabled="timerRunning">Start Drunkard's Walk</button>
+        <button @click="autoDrunkardsWalk(false)" :disabled="!timerRunning">Stop Drunkard's Walk
+        </button>
+      </p>
+      <fieldset class="parameters">
+        <legend>Drunkard's Walk Parameters</legend>
+        <label for="variation-slider">Variability</label>
+        <simple-slider id="variation-slider"
+                       :min="variationRangeMin" :max="variationRangeMax"
+                       :current-value="maxYVariation"
+                       @valueUpdated="updateMaxYVariation"></simple-slider>
+        <label for="freq-slider">Frequency (Hz)</label>
+        <simple-slider id="freq-slider"
+                       :precision="1"
+                       :scale-power="0.125"
+                       :min="animationFreqMin" :max="animationFreqMax"
+                       :current-value="animationFreq"
+                       @valueUpdated="updateAnimationFreq"></simple-slider>
+      </fieldset>
+    </div>
   </div>
 </template>
 
 <script>
 import * as d3 from 'd3';
+import SimpleSlider from "@/components/SimpleSlider";
 
 export default {
   name: "D3SandboxCh02",
+  components: {
+    SimpleSlider
+  },
   data: function () {
     return {
       width: 480,
@@ -27,19 +48,28 @@ export default {
       colors: ['darkorange', 'dodgerblue', 'firebrick', 'mediumseagreen', 'violet', 'yellow', 'indigo'],
       minPoints: 4,
       maxPoints: 20,
+      variationRangeMin: 0.005,
+      variationRangeMax: 0.5,
+      maxYVariation: 0.15,
+      animationFreqMin: 0.5,
+      animationFreqMax: 60,
+      animationFreq: 12,
+      animationPeriodMin: 1000 / 60,
+      animationPeriodMax: 2000,
+      animationPeriod: 1000 / 12,
       stage: undefined,
       g: undefined,
       multipleData: undefined,
       points: new Map(),
       axes: undefined,
-      timerPeriod: Math.round(1000 / 12),
       walkTimer: undefined,
       timerRunning: false
     }
   },
   mounted() {
     this.stage = this.$refs.stage;
-    this.g = d3.select(this.stage);
+    this.g = d3.select(this.stage)
+        .style('min-width', `${this.width}px`);
     this.loadDemo2Data()
         .then(() => {
           this.plot();
@@ -54,13 +84,13 @@ export default {
       this.plot();
     },
     appendDrunkardsWalkPoints(data) {
-      const maxXIncrement = 1.0, maxYVariation = 0.25;
+      const maxXIncrement = 1.0;
       const newX = parseFloat((data[data.length - 1].x + Math.random() * maxXIncrement).toFixed(2));
       const newPoint = {x: newX};
       const lastPoint = data[data.length - 1];
       const keys = Array.from(Object.keys(lastPoint)).filter(el => el !== 'x');
       keys.forEach(k => {
-        const multiplier = Math.random() * maxYVariation * 2 + (1 - maxYVariation);
+        const multiplier = Math.random() * this.maxYVariation * 2 + (1 - this.maxYVariation);
         newPoint[k] = lastPoint[k] * multiplier;
       })
       data.push(newPoint);
@@ -71,11 +101,17 @@ export default {
       if (run) {
         this.timerRunning = true;
         this.addNewData(true);
-        this.walkTimer = setInterval(() =>
-                this.addNewData(true)
-            , this.timerPeriod)
+        // instead of `setInterval`, recursively call a setTimeout,
+        // so that an updated frequency can be incorporated
+        const timerFn = () => {
+          this.walkTimer = setTimeout(() => {
+                this.addNewData(true);
+                timerFn();
+              }, 1000 / this.animationFreq);
+        }
+        timerFn();
       } else {
-        clearInterval(this.walkTimer);
+        clearTimeout(this.walkTimer);
         this.timerRunning = false;
       }
     },
@@ -214,6 +250,12 @@ export default {
           .attr('stroke', stroke)
           .attr('d', lineMaker(this.multipleData))
 
+    },
+    updateMaxYVariation(newValue) {
+      this.maxYVariation = newValue;
+    },
+    updateAnimationFreq(newValue) {
+      this.animationFreq = newValue;
     }
   }
 }
