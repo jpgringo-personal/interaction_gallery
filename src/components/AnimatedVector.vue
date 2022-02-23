@@ -21,6 +21,9 @@
         <label>Y: <input type="text" id="startVectorY" v-model="startVectorY"></label>
         <label>velocity: <input type="text" id="velocity" v-model="velocity"></label>
       </p>
+      <simple-slider :min="minTrailLength" :max="maxTrailLength"
+                     :current-value="trailLength"
+                     @valueUpdated="updateTrailLength"></simple-slider>
       <p>
         <button @click="startAnimation(startingVector)">Start</button>
         <button @click="stopAnimation">Stop</button>
@@ -36,6 +39,7 @@
 
 <script>
 import * as d3 from 'd3';
+import SimpleSlider from "@/components/SimpleSlider";
 
 function permuteNormals(_rect, _dimensions) {
   // TODO: figure out how to make this work in n dimensions
@@ -59,6 +63,9 @@ const devLineColors = ['goldenrod', 'magenta', 'lime'];
 
 export default {
   name: "AnimatedVector",
+  components: {
+    SimpleSlider
+  },
   data: function () {
     return {
       viewWidth: 320,
@@ -75,6 +82,8 @@ export default {
       startingVector: [0.025, 1],
       velocity: 5,
       timer: undefined,
+      minTrailLength: 10,
+      maxTrailLength: 1500,
       trailLength: 1000,
       selectedColor: 'whitesmoke',
       range1Extent: [0, 360], // hue
@@ -155,7 +164,7 @@ export default {
   methods: {
     drawBoundingBox() {
       const viewWidthString = `${this.viewWidth}px`;
-      const allSvgs = d3.selectAll('svg');
+      const allSvgs = d3.select(this.$el).selectChildren('svg');
       allSvgs.style('min-width', viewWidthString)
           .style('width', viewWidthString)
           .style('max-width', viewWidthString);
@@ -209,7 +218,6 @@ export default {
       // now calculate the reflection
       const reflectionResult = this.reflectLine(this.boundingRect, startPoint, vector, velocity);
       reflectionResult.segments.forEach((segment, i) => {
-        console.log(`segment:`, segment);
         this.frontView.append('line')
             .attr('stroke', devLineColors[i])
             .attr('stroke-width', this.lineWidth)
@@ -219,7 +227,6 @@ export default {
       })
     },
     startAnimation(vector) {
-      console.log(`will start animation...`, vector);
       // start with just 2D…
       const origin = [this.viewWidth / 2, this.viewHeight / 2]
       let normalizedVector = normalizeVector(vector);
@@ -256,16 +263,8 @@ export default {
       this.setBgColor(this.range1Value, this.range2Value);
     },
     setBgColor(hue, saturation, lightness = 60) {
-      d3.selectAll('svg').select('.color-bg').select('rect')
+      d3.select(this.$el).selectChildren('svg').select('.color-bg').select('rect')
           .attr('fill', `hsl(${hue}, ${saturation}%, ${lightness}%)`);
-    },
-    continueLine(view, startPoint, endPoint, vector, velocity, iterations = 1) {
-      console.log(`will continue line`);
-      for (let i = 0; i < iterations; i++) {
-        this.drawSegment(view, startPoint, endPoint);
-        startPoint = endPoint;
-        endPoint = calculateEndpoint(startPoint, vector, velocity);
-      }
     },
     drawSegment(view, startPoint, endPoint) {
       view.append('line')
@@ -280,7 +279,6 @@ export default {
       const trailLength = this.trailLength;
       view.selectAll('line')
           .each(function () {
-            // console.log(`tl=${this.trailLength}; op=${this.opacity_value}`);
             this.opacity_value -= 1 / trailLength;
           })
           .attr('stroke-opacity', function () {
@@ -293,7 +291,7 @@ export default {
     },
     reflectLine(boundingRect, startPoint, vector, velocity, segments = []) {
       const normalizedVector = normalizeVector(vector)
-      const result = getReflectionSegments_best(startPoint, normalizedVector, this.boundingRect);
+      const result = getReflectionSegments(startPoint, normalizedVector, this.boundingRect);
       const epsilon = 0.001;
       const bestMatch = result.reduce((acc, res) => {
         if (acc === undefined) {
@@ -324,13 +322,11 @@ export default {
         const bmn = bestMatch.isCorner ?
             normalizedVector :
             bestMatch.normal;
-        console.log(`currentNormal:`, bmn.toString());
         const rotatedNormal = [
           bmn[0] * Math.cos(theta) - bmn[1] * Math.sin(theta),
           bmn[0] * Math.sin(theta) + bmn[1] * Math.cos(theta)
         ]
             .map(val => parseFloat(val.toFixed(6)));
-        console.log(`rotatedNormal:`, rotatedNormal.toString());
         n = rotatedNormal;
       } else if (bestMatch.isCorner) {
         n = [0, 0]
@@ -343,7 +339,6 @@ export default {
       const magnitude = velocity - bestMatch.hypotenuse;
       const newEndPoint = calculateEndpoint(bestMatch.pt, normalizeVector(r), magnitude);
       if (!inBounds(newEndPoint, boundingRect)) {
-        console.log(`DAMMIT!! THAT'S NOT IN BOUNDS, EITHER :(`);
         return this.reflectLine(boundingRect, bestMatch.pt, r, velocity, segments)
       } else {
         segments.push([bestMatch.pt, newEndPoint]);
@@ -352,15 +347,14 @@ export default {
 
     },
     stopAnimation() {
-      console.log(`will stop animation...`);
       !!this.timer && this.timer.stop();
     },
     clearStages() {
-      d3.selectAll('svg').selectAll('*').remove();
+      d3.select(this.$el).selectChildren('svg').selectAll('*').remove();
       this.drawBoundingBox();
     },
-    checkComponentValue(evt) {
-      console.log(`checking (and maybe resetting) component value… `, evt);
+    updateTrailLength(newVal) {
+      this.trailLength = newVal;
     }
   }
 }
@@ -384,24 +378,6 @@ function inBounds(point, rect) {
       && point[1] <= rect.y + rect.h;
 }
 
-function getCollisionNormal(point, rect) {
-  if (point[0] < rect.x) {
-    console.log(`collided with left edge of rectangle`);
-    return [1, 0];
-  } else if (point[0] > rect.x + rect.w) {
-    console.log(`collided with right edge of rectangle`);
-    return [-1, 0];
-  } else if (point[1] < rect.y) {
-    console.log(`collided with bottom edge of rectangle`);
-    return [0, 1];
-  } else if (point[1] > rect.y + rect.h) {
-    console.log(`collided with top edge of rectangle`);
-    return [0, -1];
-  } else {
-    return null;
-  }
-}
-
 function dotProduct(vectorA, vectorB) {
   if (vectorA.length !== vectorB.length) throw new Error('dot product: vectors must be of the same length');
   return vectorA.reduce((acc, coord, i) => {
@@ -414,8 +390,6 @@ function subtractVectors(minuendVector, subtrahendVector) {
 }
 
 function addVectors(augendVector, addendVector) {
-  console.log(`augendVector:`, augendVector);
-  console.log(`addendVector:`, addendVector);
   return augendVector.map((val, i) => val + (addendVector[i] !== undefined ? addendVector[i] : 0));
 }
 
@@ -425,12 +399,10 @@ function scalarMultiplyVector(scalar, vector) {
 
 function getAdjacentValues(startPoint, endPoint, edge) {
   const adjacentEndpoint = startPoint.reduce((acc, coord, i) => {
-    console.log(`startPoint[${i}]=${coord}; endPoint[${i}]=${endPoint[i]}; edge.normal[${i}]=${edge.normal[i]}`);
     const excluded = edge.normal[i] >= 0;
     acc[i] = excluded ? coord : endPoint[i];
     return acc;
   }, [0, 0])
-  console.log(`adjacentEndPoint:`, adjacentEndpoint);
   const adjacentLength = (adjacentEndpoint[0] - startPoint[0]) + (adjacentEndpoint[1] - startPoint[1]);
   const oppositeEndpoint = adjacentEndpoint.reduce((acc, coord, i) => {
 
@@ -438,91 +410,7 @@ function getAdjacentValues(startPoint, endPoint, edge) {
   return {adjacent: {points: [startPoint, adjacentEndpoint], length: adjacentLength}};
 }
 
-function calculateHypotenuse(startPoint, endPoint, vector, edge) {
-  console.log(`edge - value=${edge.value}; normal:`, edge.normal.toString());
-  // get the required coord value from the origin
-  console.log(`startPoint:`, startPoint.toString());
-  const sides = getAdjacentValues(startPoint, endPoint, edge);
-  console.log(`sides:`, sides);
-  // const adjacentDelta = edge.value - adjacentValue;
-  // console.log(`adjacent delta:`, adjacentDelta);
-  // const adjacentRatio = adjacentDelta / adjacentValue;
-  // console.log(`adjacent ratio:`, adjacentRatio);
-  return 0;
-}
-
-// TODO: do we need a special case for a point that is outside the bounding box?
-function getReflectionSegments(startPoint, endPoint, vector, boundingRect) {
-  const normalizedVector = normalizeVector(vector);
-  const candidateEdges = boundingRect.edges.filter(({normal}) => {
-    return dotProduct(normalizedVector, normal) < 0;
-  });
-  const targetEdge = candidateEdges.reduce((acc, edge) => {
-    const hypotenuse = calculateHypotenuse(startPoint, endPoint, vector, edge)
-    return acc === undefined ? {edge: edge, magnitude: hypotenuse} : {}
-  }, undefined)
-  console.log(`targetEdge:`, targetEdge);
-  const reflectionPoint = [];
-  console.log(`reflectionPoint`, reflectionPoint);
-}
-
-function getReflectionSegments_better(startPoint, endPoint, vector, boundingRect) {
-  // console.log(`better reflection segments...`);
-  const normalizedVector = normalizeVector(vector);
-  let candidateEdges = boundingRect.edges.filter(({normal}) => {
-    return dotProduct(normalizedVector, normal) < 0;
-  });
-  const boundingBoxAsOriginAndVector = rectToVector(boundingRect);
-  // console.log(`bb as o+v:`, boundingBoxAsOriginAndVector);
-  // console.log(`candidateEdges:`, candidateEdges);
-  const vectorBoundingBox = {
-    o: [Math.min(startPoint[0], endPoint[0]),
-      Math.min(startPoint[1], endPoint[1])],
-    v: [Math.abs(endPoint[0] - startPoint[0]),
-      Math.abs(endPoint[1] - startPoint[1])],
-  }
-  // TODO: the specification of boxB AND scale AND edge normal can probably be combined into one
-  const boxBEndpoint = [
-    candidateEdges.reduce((acc, {normal, value}) => {
-      return normal[0] < 0 ? acc + value : acc;
-    }, 0),
-    candidateEdges.reduce((acc, {normal, value}) => {
-      return normal[1] < 0 ? acc + value : acc;
-    }, 0)
-  ];
-  const boxB = {
-    o: [Math.min(startPoint[0], endPoint[0]),
-      Math.min(startPoint[1], endPoint[1])],
-    v: [boxBEndpoint[0] - vectorBoundingBox.o[0],
-      boxBEndpoint[1] - vectorBoundingBox.o[1]]
-  }
-  candidateEdges.reduce((acc, edge) => {
-    console.log(`edge=${edge.value}:`, edge.normal.toString());
-  }, {scale: undefined, normal: undefined})
-  const outcomes = candidateEdges.reduce((acc, edge) => {
-    return acc;
-  }, {scale: Infinity, edgeNormal: undefined});
-  // console.log(`outcomes - scale=${outcomes.scale}; normal:`, outcomes.edgeNormal);
-  const dim0Scale = boxB.v[0] / vectorBoundingBox.v[0], // width, i.e., v = [±1, 0]
-      dim1Scale = boxB.v[1] / vectorBoundingBox.v[1]; // height; i.e., v = [0, ±1]
-  const scale = Math.min(dim0Scale, dim1Scale);
-  // console.log(`horizScale=${dim0Scale}; vertScale=${dim1Scale}; scale=${scale}`);
-  const segment1 = [startPoint,
-    [
-      vectorBoundingBox.o[0] + (vectorBoundingBox.v[0] * scale),
-      vectorBoundingBox.o[1] + (vectorBoundingBox.v[1] * scale)
-    ]
-  ]
-  console.log(`startPoint:`, startPoint, '; boxB:', boxB);
-  return {
-    boxes: [
-      vectorBoundingBox,
-      boxB
-    ], segments: [segment1]
-  };
-}
-
-function getReflectionSegments_best(startPoint, vector, boundingRect) {
+function getReflectionSegments(startPoint, vector, boundingRect) {
 // 1. calculate slope
   const slope = vector[1] / vector[0];
   // for each candidate edge…
