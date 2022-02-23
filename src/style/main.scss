@@ -115,6 +115,23 @@ label {
       flex-grow: 1;
     }
   }
+
+  &.animated-vector {
+
+    .controls {
+      label {
+        &::after {
+          content: none;
+        }
+      }
+      input[type=text] {
+        width: 3em;
+      }
+      input[type=number] {
+        width: 5em;
+      }
+    }
+  }
 }
 
 .ch03 {

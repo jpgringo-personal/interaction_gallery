@@ -4,6 +4,7 @@
     <router-link to="/ch02">Chapter 2</router-link>
     <router-link to="/ch03">Chapter 3</router-link>
     <router-link to="/ch04">Chapter 4</router-link>
+    <router-link to="/extras">Extras</router-link>
   </div>
   <router-view/>
 </template>

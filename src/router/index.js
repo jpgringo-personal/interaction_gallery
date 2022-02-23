@@ -24,6 +24,11 @@ const routes = [
     path: '/ch04',
     name: 'Chapter 04',
     component: () => import(/* webpackChunkName: "ch04" */ '../views/Chapter04')
+  },
+  {
+    path: '/extras',
+    name: 'Extras',
+    component: () => import(/* webpackChunkName: "extras" */ '../views/Extras')
   }
 ]
 

@@ -15,7 +15,7 @@ import D3SandboxCh04Transition from "@/components/D3Sandbox-Ch04-Transition";
 import D3SandboxCh04Lissajous from "@/components/D3Sandbox-Ch04-Lissajous";
 
 export default {
-  name: "Chapter03",
+  name: "Chapter04",
   components: {
     D3SandboxCh04,
     D3SandboxCh04DragAndDrop,
