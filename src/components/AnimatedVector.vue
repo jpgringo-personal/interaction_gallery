@@ -397,19 +397,6 @@ function scalarMultiplyVector(scalar, vector) {
   return vector.map(val => scalar * val);
 }
 
-function getAdjacentValues(startPoint, endPoint, edge) {
-  const adjacentEndpoint = startPoint.reduce((acc, coord, i) => {
-    const excluded = edge.normal[i] >= 0;
-    acc[i] = excluded ? coord : endPoint[i];
-    return acc;
-  }, [0, 0])
-  const adjacentLength = (adjacentEndpoint[0] - startPoint[0]) + (adjacentEndpoint[1] - startPoint[1]);
-  const oppositeEndpoint = adjacentEndpoint.reduce((acc, coord, i) => {
-
-  }, [0, 0]);
-  return {adjacent: {points: [startPoint, adjacentEndpoint], length: adjacentLength}};
-}
-
 function getReflectionSegments(startPoint, vector, boundingRect) {
 // 1. calculate slope
   const slope = vector[1] / vector[0];

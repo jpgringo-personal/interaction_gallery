@@ -28,7 +28,19 @@ const routes = [
   {
     path: '/extras',
     name: 'Extras',
-    component: () => import(/* webpackChunkName: "extras" */ '../views/Extras')
+    component: () => import(/* webpackChunkName: "extras" */ '../views/Extras'),
+    children: [
+      {
+        path: '/extras/animated-vector',
+        name: 'Animated Vector',
+        component: () => import(/* webpackChunkName: "extras" */ '../components/AnimatedVector')
+      },
+      {
+        path: '/extras/animated-vector-3d',
+        name: 'Animated Vector 3D',
+        component: () => import(/* webpackChunkName: "extras" */ '../components/AnimatedVector3D')
+      }
+    ]
   }
 ]
 
